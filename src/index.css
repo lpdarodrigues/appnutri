@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg:      #F1F4F7;
+  --color-surf:    #FFFFFF;
+  --color-surf2:   #F7F9FB;
+  --color-ink:     #0E151D;
+  --color-dim:     #8B99A7;
+  --color-line:    #E3E9EE;
+  --color-prot:    #0B7A63;
+  --color-carb:    #2160A8;
+  --color-fat:     #B0601C;
+  --color-warn:    #B33A2B;
+
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+  /* Todo número é tabular — colunas de gramas têm que alinhar. */
+  .num, input[type="number"], .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-carb);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  button { -webkit-tap-highlight-color: transparent; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--color-surf);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgb(14 21 29 / 0.05), 0 1px 8px rgb(14 21 29 / 0.04);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    font-weight: 500;
+  }
+  .sh {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    margin: 20px 0 8px;
+    font-weight: 500;
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.06em;
+    padding: 2px 5px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: 1.5px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .tag-taco   { background: #E6EEF8; color: var(--color-carb); }
+  .tag-rotulo { background: #E2F0EC; color: var(--color-prot); }
+  .tag-estim  { background: #F3E8DC; color: var(--color-fat); }
+
+  .fld label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .fld input, .fld select {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    padding: 7px 0;
+    font-size: 15px;
+    color: var(--color-ink);
+    font-family: inherit;
+  }
+  .fld input:focus, .fld select:focus { border-bottom-color: var(--color-carb); }
+
+  .btn {
+    background: var(--color-ink);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 18px;
+    transition: opacity .15s;
+  }
+  .btn:active { opacity: .8; }
+  .btn-gh {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-line);
+  }
+  .btn-sm { padding: 8px 12px; font-size: 13px; }
+
+  .pill {
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: var(--color-surf);
+    color: var(--color-dim);
+    border: 1px solid var(--color-line);
+    white-space: nowrap;
+  }
+  .pill-on { background: var(--color-ink); color: #fff; border-color: var(--color-ink); }
+
+  .note {
+    background: var(--color-surf2);
+    border-left: 2px solid var(--color-line);
+    border-radius: 0 8px 8px 0;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #4A5763;
+  }
+  .note-al { background: #FBEDEB; border-left-color: var(--color-warn); color: #7A2A1F; }
+  .note-gd { background: #E6F2EE; border-left-color: var(--color-prot); color: #0A5748; }
+
+  .empty {
+    text-align: center;
+    padding: 34px 20px;
+    color: var(--color-dim);
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+}

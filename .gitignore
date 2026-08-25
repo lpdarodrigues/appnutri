@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+.DS_Store
+*.local
+.vite
+
+# Nada pessoal vai para o repositório público
+referencia/
+meus-dados/
