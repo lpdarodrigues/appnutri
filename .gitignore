@@ -8,3 +8,6 @@ dist-ssr
 # Nada pessoal vai para o repositório público
 referencia/
 meus-dados/
+
+# artefato de build
+*.tsbuildinfo

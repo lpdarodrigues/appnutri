@@ -5,7 +5,7 @@ import { norm, TACO } from "../lib/catalog";
 import { GLBL } from "../lib/nutrition-config";
 import { r0, r1, procedencia, numBR } from "../lib/format";
 import { uid } from "../lib/db";
-import { leituraDisponivel } from "../lib/rotulo-foto";
+import { LeitorRotulo } from "../components/LeitorRotulo";
 import type { Food, Familia } from "../lib/types";
 
 const CATS = ["Meus rótulos", ...Array.from(new Set(TACO.map(f => f.cat)))];
@@ -101,6 +101,9 @@ function DetalheAlimento({ f, onFechar }: { f: Food | null; onFechar: () => void
 
 function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: (f: Food) => void }) {
   const [v, setV] = useState({ n: "", kcal: "", p: "", c: "", g: "", fib: "", na: "", un: "g", md: "", mp: "", gr: "carbo" });
+  const [lendo, setLendo] = useState(false);
+
+  const txt = (n: number | undefined) => (n === undefined ? "" : String(n).replace(".", ","));
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setV(s => ({ ...s, [k]: e.target.value }));
   const num = (s: string) => (s.trim() ? numBR(s) || 0 : 0);
 
@@ -130,7 +133,15 @@ function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: 
   return (
     <Sheet aberto titulo="Cadastrar alimento" sub="Valores por 100 g ou 100 ml, como no rótulo" onFechar={onFechar}>
       <div className="px-4 pb-2">
-        <div className="flex gap-3">{campo("n", "Nome", "text", "Ex.: requeijão light da marca X")}</div>
+        <button onClick={() => setLendo(true)} className="btn btn-gh flex w-full items-center justify-center gap-2">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
+            <path d="M3 7a2 2 0 012-2h1.5l1-1.5h5L17 5h-2a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
+              stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+            <circle cx="10" cy="10.5" r="2.8" stroke="currentColor" strokeWidth="1.6" />
+          </svg>
+          Ler rótulo do produto
+        </button>
+        <div className="mt-3 flex gap-3">{campo("n", "Nome", "text", "Ex.: requeijão light da marca X")}</div>
         <div className="mt-3 flex gap-3">{campo("kcal", "Kcal", "number")}{campo("p", "Proteína", "number")}</div>
         <div className="mt-3 flex gap-3">{campo("c", "Carboidrato", "number")}{campo("g", "Gordura", "number")}</div>
         <div className="mt-3 flex gap-3">
@@ -155,15 +166,28 @@ function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: 
         <button onClick={salvar} className="btn mt-5 w-full">Salvar alimento</button>
 
         <div className="note mt-3">
-          <b>Dica:</b> se o rótulo só traz a coluna da porção (ex.: 30 g), divida pelo peso da
-          porção e multiplique por 100. O app faz o resto.
+          <b>Dica:</b> se o rótulo só traz a coluna da porção (ex.: 30 g), use o
+          <b> Ler rótulo</b> ali em cima — ele faz a conversão para 100 {v.un} sozinho.
         </div>
-        {!leituraDisponivel() && (
-          <div className="note mt-2.5">
-            <b>Em breve:</b> preencher estes campos fotografando a tabela nutricional.
-          </div>
-        )}
       </div>
+
+      {lendo && (
+        <LeitorRotulo
+          onFechar={() => setLendo(false)}
+          onUsar={c => setV(s => ({
+            ...s,
+            kcal: c.kcal !== undefined ? txt(c.kcal) : s.kcal,
+            p: c.p !== undefined ? txt(c.p) : s.p,
+            c: c.c !== undefined ? txt(c.c) : s.c,
+            g: c.g !== undefined ? txt(c.g) : s.g,
+            fib: c.fib !== undefined ? txt(c.fib) : s.fib,
+            na: c.na !== undefined ? txt(c.na) : s.na,
+            md: c.md ?? s.md,
+            mp: c.mp !== undefined ? txt(c.mp) : s.mp,
+            un: c.un,
+          }))}
+        />
+      )}
     </Sheet>
   );
 }
