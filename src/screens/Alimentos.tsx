@@ -7,6 +7,7 @@ import { GLBL } from "../lib/nutrition-config";
 import { r0, r1, procedencia, numBR } from "../lib/format";
 import { uid } from "../lib/db";
 import { LeitorRotulo } from "../components/LeitorRotulo";
+import { BuscaProduto } from "../components/BuscaProduto";
 import type { Food, Familia } from "../lib/types";
 
 const CATS = ["Meus rótulos", ...Array.from(new Set(TACO.map(f => f.cat)))];
@@ -112,6 +113,8 @@ function DetalheAlimento({ f, onFechar }: { f: Food | null; onFechar: () => void
 function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: (f: Food) => void }) {
   const [v, setV] = useState({ n: "", kcal: "", p: "", c: "", g: "", fib: "", na: "", un: "g", md: "", mp: "", gr: "carbo" });
   const [lendo, setLendo] = useState(false);
+  const [buscandoProduto, setBuscandoProduto] = useState(false);
+  const [origem, setOrigem] = useState<"user" | "aberta">("user");
 
   const txt = (n: number | undefined) => (n === undefined ? "" : String(n).replace(".", ","));
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setV(s => ({ ...s, [k]: e.target.value }));
@@ -127,7 +130,7 @@ function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: 
       un: v.un as "g" | "ml",
       md: v.md.trim() || null, mp: num(v.mp) || null,
       mdp: v.md.trim() ? v.md.trim() + "s" : null,
-      ok: true, src: "user",
+      ok: true, src: origem,
     });
   };
 
@@ -143,7 +146,14 @@ function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: 
   return (
     <Sheet aberto titulo="Cadastrar alimento" sub="Valores por 100 g ou 100 ml, como no rótulo" onFechar={onFechar}>
       <div className="px-4 pb-2">
-        <button onClick={() => setLendo(true)} className="btn btn-gh flex w-full items-center justify-center gap-2">
+        <button onClick={() => setBuscandoProduto(true)} className="btn flex w-full items-center justify-center gap-2">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
+            <path d="M2.5 6V4a1.5 1.5 0 011.5-1.5h2M17.5 6V4A1.5 1.5 0 0016 2.5h-2M2.5 14v2A1.5 1.5 0 004 17.5h2M17.5 14v2a1.5 1.5 0 01-1.5 1.5h-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M6 6.5v7M8.6 6.5v7M11.4 6.5v7M14 6.5v7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          Buscar produto industrializado
+        </button>
+        <button onClick={() => setLendo(true)} className="btn btn-gh mt-2 flex w-full items-center justify-center gap-2">
           <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
             <path d="M3 7a2 2 0 012-2h1.5l1-1.5h5L17 5h-2a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
               stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
@@ -181,9 +191,21 @@ function FormAlimento({ onFechar, onSalvar }: { onFechar: () => void; onSalvar: 
         </div>
       </div>
 
+      {buscandoProduto && (
+        <BuscaProduto
+          onFechar={() => setBuscandoProduto(false)}
+          onUsar={p => { setOrigem("aberta"); setV(s => ({
+            ...s, n: [p.nome, p.marca].filter(Boolean).join(" — ").slice(0, 70),
+            kcal: txt(p.kcal), p: txt(p.p), c: txt(p.c), g: txt(p.g),
+            fib: txt(p.fib), na: txt(p.na), un: p.un,
+            md: p.md ?? s.md, mp: p.mp !== null && p.mp !== undefined ? txt(p.mp) : s.mp,
+            gr: p.gr ?? s.gr,
+          })); }}
+        />
+      )}
       {lendo && (
         <LeitorRotulo
-          onFechar={() => setLendo(false)}
+          onFechar={() => { setLendo(false); setOrigem("user"); }}
           onUsar={c => setV(s => ({
             ...s,
             kcal: c.kcal !== undefined ? txt(c.kcal) : s.kcal,

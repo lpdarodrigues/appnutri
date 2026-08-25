@@ -24,7 +24,13 @@ export interface Food {
   mdp?: string | null;
   /** true = valores vindos de rótulo do fabricante; false/ausente = estimado */
   ok?: boolean;
-  src: "taco" | "user";
+  /**
+   * taco   — medido em laboratório (NEPA/Unicamp)
+   * user   — lido do rótulo, ou estimado, pelo próprio usuário
+   * aberta — Open Food Facts: base colaborativa, conferida pelo usuário na hora
+   *          do cadastro mas nunca medida. Merece um olhar antes de confiar.
+   */
+  src: "taco" | "user" | "aberta";
 }
 
 export interface MealItem { f: string; q: number }

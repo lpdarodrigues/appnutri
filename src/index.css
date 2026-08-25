@@ -122,6 +122,7 @@
   .tag-taco   { background: #E6EEF9; color: var(--color-carb); }
   .tag-rotulo { background: #E4F1ED; color: var(--color-prot); }
   .tag-estim  { background: #F7EBDF; color: var(--color-fat); }
+  .tag-aberta { background: #EDE9F7; color: #5B4B9E; }
 
   .fld label {
     display: block;

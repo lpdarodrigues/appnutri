@@ -41,6 +41,15 @@ APPNUTRI_BASE=/NOME-DO-REPO/ npm run build
 O deploy roda sozinho pelo GitHub Actions a cada push na branch `main`
 (ver `.github/workflows/deploy.yml`).
 
+## Fontes de dados
+
+- **TACO** — NEPA/Unicamp, 4ª ed. Embutida, offline, 597 alimentos medidos em
+  laboratório.
+- **Open Food Facts** — consultada online para produtos industrializados, por
+  código de barras ou por marca. Dados © Open Food Facts, licença ODbL. Base
+  colaborativa: os valores são conferidos pelo usuário no cadastro e ficam
+  marcados com a etiqueta ABERTA para sempre.
+
 ## Regras que não devem ser quebradas
 
 - **Nunca inventar valor nutricional.** Todo número vem da TACO ou de rótulo

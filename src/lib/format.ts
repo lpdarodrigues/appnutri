@@ -64,6 +64,9 @@ export function procedencia(f: Food): { txt: string; cls: string; fonte: string 
   if (f.src === "taco")
     return { txt: "TACO", cls: "tag-taco",
       fonte: "Fonte: TACO — Tabela Brasileira de Composição de Alimentos, NEPA/Unicamp, 4ª edição." };
+  if (f.src === "aberta")
+    return { txt: "ABERTA", cls: "tag-aberta",
+      fonte: "Open Food Facts — base aberta e colaborativa, sob licença ODbL. Os valores foram cadastrados por voluntários a partir da embalagem, não medidos em laboratório. Confira na embalagem se algum número parecer estranho." };
   if (f.ok)
     return { txt: "RÓTULO", cls: "tag-rotulo", fonte: "Valores do rótulo do fabricante, cadastrados por você." };
   return { txt: "ESTIM.", cls: "tag-estim", fonte: "Valores estimados por você — confira no rótulo quando puder." };
