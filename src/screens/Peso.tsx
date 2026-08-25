@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
-import { Lista, Linha, Stat, Vazio } from "../components/ui";
+import { Lista, Linha, Vazio } from "../components/ui";
 import { GraficoPeso } from "../components/GraficoPeso";
 import { ordenar, tendencia, ritmoSemanal, variacao7, variacaoTotal, pesoTendencia, alerta } from "../lib/weight";
 import { kgf, sinal, numBR, hoje, deIso } from "../lib/format";
-
-const cor = (v: number) => (v < 0 ? "var(--color-prot)" : v > 0 ? "var(--color-warn)" : "var(--color-ink)");
 
 export function Peso() {
   const st = useStore();
@@ -31,31 +29,63 @@ export function Peso() {
 
   return (
     <div className="px-4 pb-4" style={{ paddingTop: "max(env(safe-area-inset-top), 14px)" }}>
-      <h2 className="text-[21px] font-semibold">Peso</h2>
+      <div className="hero px-5 pb-4 pt-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="num text-[8.5px] tracking-[0.12em] text-white/45">PESO DE TENDÊNCIA</div>
+            <div className="mt-1.5 flex items-baseline gap-1.5">
+              <b className="num text-[34px] font-semibold leading-none tracking-tight">{agora !== null ? kgf(agora) : "—"}</b>
+              <span className="num text-[10px] text-white/45">KG</span>
+            </div>
+            <div className="num mt-1 text-[9.5px] text-white/45">média móvel de 7 dias</div>
+          </div>
 
-      <div className="mt-3 flex items-end gap-3">
-        <div className="fld flex-1">
-          <label htmlFor="w-d">Data</label>
-          <input id="w-d" type="date" value={data} max={hoje()} onChange={e => setData(e.target.value)} />
+          <div className="text-right">
+            <div className="num text-[8.5px] tracking-[0.12em] text-white/45">RITMO SEMANAL</div>
+            <div className="mt-1.5 flex items-baseline justify-end gap-1.5">
+              <b className="num text-[34px] font-semibold leading-none tracking-tight"
+                style={{ color: ritmo === null ? "#fff" : ritmo < 0 ? "var(--color-prot-lt)" : "#E88B7B" }}>
+                {ritmo !== null ? sinal(ritmo) : "—"}
+              </b>
+            </div>
+            <div className="num mt-1 text-[9.5px] text-white/45">
+              {ritmo !== null ? "kg/sem · regressão 28 dias" : "mín. 4 registros"}
+            </div>
+          </div>
         </div>
-        <div className="fld max-w-[104px]">
-          <label htmlFor="w-k">Peso (kg)</label>
-          <input id="w-k" className="num" type="text" inputMode="decimal" value={kg}
-            onChange={e => setKg(e.target.value)} onKeyDown={e => e.key === "Enter" && registrar()} placeholder="91,0" />
+
+        <div className="mt-4 flex justify-between border-t border-white/10 pt-3">
+          {([
+            ["7 DIAS", v7 !== null ? sinal(v7) : "—"],
+            ["DESDE O INÍCIO", vt !== null ? sinal(vt) : "—"],
+            ["REGISTROS", String(w.length)],
+          ] as const).map(([rot, val]) => (
+            <div key={rot}>
+              <div className="num text-[8px] tracking-[0.12em] text-white/35">{rot}</div>
+              <div className="num mt-1 text-[14px] font-semibold">{val}</div>
+            </div>
+          ))}
         </div>
-        <button onClick={registrar} className="btn btn-sm">Registrar</button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Stat rotulo="Peso de tendência" valor={agora !== null ? kgf(agora) : "—"} sub={agora !== null ? "kg · média 7 dias" : "sem registro"} />
-        <Stat rotulo="Ritmo semanal" valor={ritmo !== null ? sinal(ritmo) : "—"} cor={ritmo !== null ? cor(ritmo) : undefined}
-          sub={ritmo !== null ? "kg/sem · regressão 28 dias" : "mín. 4 registros"} />
-        <Stat rotulo="Variação 7 dias" valor={v7 !== null ? sinal(v7) : "—"} cor={v7 !== null ? cor(v7) : undefined} sub="kg na tendência" />
-        <Stat rotulo="Desde o início" valor={vt !== null ? sinal(vt) : "—"} cor={vt !== null ? cor(vt) : undefined}
-          sub={`${w.length} registro${w.length === 1 ? "" : "s"}`} />
+      <p className="sh">Registrar pesagem</p>
+      <div className="card px-4 py-3.5">
+        <div className="flex items-end gap-3">
+          <div className="fld flex-1">
+            <label htmlFor="w-d">Data</label>
+            <input id="w-d" type="date" value={data} max={hoje()} onChange={e => setData(e.target.value)} />
+          </div>
+          <div className="fld max-w-[104px]">
+            <label htmlFor="w-k">Peso (kg)</label>
+            <input id="w-k" className="num" type="text" inputMode="decimal" value={kg}
+              onChange={e => setKg(e.target.value)} onKeyDown={e => e.key === "Enter" && registrar()} placeholder="91,0" />
+          </div>
+          <button onClick={registrar} className="btn btn-sm">Registrar</button>
+        </div>
       </div>
 
-      <div className="mt-3"><GraficoPeso weights={st.weights} /></div>
+      <p className="sh">Evolução</p>
+      <GraficoPeso weights={st.weights} />
 
       {al && <div className={`mt-3 ${CLASSE[al.nivel]}`}><b>{al.titulo}</b> {al.texto}</div>}
 

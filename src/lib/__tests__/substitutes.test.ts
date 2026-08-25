@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { substitutos, rootn } from "../substitutes";
+import { substitutos, rootn, EM_ANCORA } from "../substitutes";
 import { catalogo, acharPorNome } from "../catalog";
 import { COMUM } from "../nutrition-config";
 import type { Food } from "../types";
@@ -168,5 +168,14 @@ describe("higiene do resultado", () => {
     const R = substitutos(pega("Gelatina, sabores variados, pó"), 20, CAT);
     expect(R.a).toBeNull();
     expect(R.list).toHaveLength(0);
+  });
+});
+
+describe("português da interface", () => {
+  it("concorda a preposição com o gênero do macro", () => {
+    expect(EM_ANCORA.P).toBe("na proteína");
+    expect(EM_ANCORA.G).toBe("na gordura");
+    expect(EM_ANCORA.C).toBe("no carboidrato");
+    expect(EM_ANCORA.V).toBe("nas calorias");
   });
 });

@@ -1,16 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg:      #F1F4F7;
+  /* Neutros — fundo mais profundo para o branco dos cartões descolar de verdade */
+  --color-bg:      #EBEFF4;
   --color-surf:    #FFFFFF;
-  --color-surf2:   #F7F9FB;
-  --color-ink:     #0E151D;
-  --color-dim:     #8B99A7;
-  --color-line:    #E3E9EE;
+  --color-surf2:   #F4F7FA;
+  --color-ink:     #0D141C;
+  --color-ink2:    #47555F;   /* texto secundário legível, no lugar do cinza claro */
+  --color-dim:     #77869A;   /* só para rótulos e unidades */
+  --color-line:    #E2E8EF;
+
+  /* Acentos de macro — versão sólida (fundo claro) e clara (fundo escuro) */
   --color-prot:    #0B7A63;
   --color-carb:    #2160A8;
   --color-fat:     #B0601C;
   --color-warn:    #B33A2B;
+  --color-prot-lt: #23BA97;
+  --color-carb-lt: #5C9EEA;
+  --color-fat-lt:  #E5943F;
 
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
@@ -31,10 +38,11 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
   }
+  h1, h2, h3 { letter-spacing: -0.017em; }
   :focus-visible {
     outline: 2px solid var(--color-carb);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   button { -webkit-tap-highlight-color: transparent; }
   @media (prefers-reduced-motion: reduce) {
@@ -47,48 +55,79 @@
 }
 
 @layer components {
+  /* Sombra em duas camadas: contorno curto + difusão longa. É o que faz o
+     cartão parecer pousado na página em vez de colado nela. */
   .card {
     background: var(--color-surf);
-    border-radius: 14px;
-    box-shadow: 0 1px 2px rgb(14 21 29 / 0.05), 0 1px 8px rgb(14 21 29 / 0.04);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 2px rgb(13 20 28 / 0.05),
+      0 4px 16px -4px rgb(13 20 28 / 0.07);
   }
+
+  /* Painel escuro do topo — a âncora visual do app */
+  .hero {
+    background: linear-gradient(158deg, #1B2733 0%, #0D141C 62%);
+    border-radius: 22px;
+    box-shadow: 0 10px 28px -10px rgb(13 20 28 / 0.45);
+    color: #fff;
+  }
+
   .eyebrow {
     font-family: var(--font-mono);
     font-size: 9px;
-    letter-spacing: 0.09em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-dim);
     font-weight: 500;
   }
   .sh {
     font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 9.5px;
+    letter-spacing: 0.11em;
     text-transform: uppercase;
     color: var(--color-dim);
-    margin: 20px 0 8px;
+    margin: 22px 0 9px;
     font-weight: 500;
   }
+
+  /* Macro em pílula colorida — traz a paleta para a frente */
+  .chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 2.5px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .chip b { font-weight: 600; font-size: 11.5px; }
+  .chip-p { background: #E4F1ED; color: #06614E; }
+  .chip-c { background: #E6EEF9; color: #1B4E88; }
+  .chip-g { background: #F7EBDF; color: #8E4C13; }
+
   .tag {
     font-family: var(--font-mono);
     font-size: 8.5px;
     letter-spacing: 0.06em;
     padding: 2px 5px;
-    border-radius: 4px;
+    border-radius: 5px;
     margin-left: 6px;
     vertical-align: 1.5px;
     font-weight: 500;
     white-space: nowrap;
   }
-  .tag-taco   { background: #E6EEF8; color: var(--color-carb); }
-  .tag-rotulo { background: #E2F0EC; color: var(--color-prot); }
-  .tag-estim  { background: #F3E8DC; color: var(--color-fat); }
+  .tag-taco   { background: #E6EEF9; color: var(--color-carb); }
+  .tag-rotulo { background: #E4F1ED; color: var(--color-prot); }
+  .tag-estim  { background: #F7EBDF; color: var(--color-fat); }
 
   .fld label {
     display: block;
     font-family: var(--font-mono);
     font-size: 9px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--color-dim);
     margin-bottom: 5px;
@@ -98,58 +137,66 @@
     width: 100%;
     background: transparent;
     border: 0;
-    border-bottom: 1px solid var(--color-line);
+    border-bottom: 1.5px solid var(--color-line);
     padding: 7px 0;
     font-size: 15px;
     color: var(--color-ink);
     font-family: inherit;
+    transition: border-color .15s;
   }
   .fld input:focus, .fld select:focus { border-bottom-color: var(--color-carb); }
 
   .btn {
     background: var(--color-ink);
     color: #fff;
-    border-radius: 10px;
+    border-radius: 11px;
     font-size: 14px;
     font-weight: 600;
     padding: 12px 18px;
-    transition: opacity .15s;
+    transition: opacity .15s, transform .1s;
   }
-  .btn:active { opacity: .8; }
+  .btn:active { opacity: .85; transform: scale(.985); }
   .btn-gh {
-    background: transparent;
+    background: var(--color-surf);
     color: var(--color-ink);
     border: 1px solid var(--color-line);
+    box-shadow: 0 1px 2px rgb(13 20 28 / 0.04);
   }
-  .btn-sm { padding: 8px 12px; font-size: 13px; }
+  .btn-sm { padding: 9px 13px; font-size: 13px; border-radius: 9px; }
 
   .pill {
     font-size: 12.5px;
     font-weight: 500;
-    padding: 7px 13px;
+    padding: 7px 14px;
     border-radius: 999px;
     background: var(--color-surf);
-    color: var(--color-dim);
+    color: var(--color-ink2);
     border: 1px solid var(--color-line);
     white-space: nowrap;
+    transition: all .15s;
   }
-  .pill-on { background: var(--color-ink); color: #fff; border-color: var(--color-ink); }
+  .pill-on {
+    background: var(--color-ink);
+    color: #fff;
+    border-color: var(--color-ink);
+    box-shadow: 0 2px 8px -2px rgb(13 20 28 / 0.3);
+  }
 
   .note {
     background: var(--color-surf2);
-    border-left: 2px solid var(--color-line);
-    border-radius: 0 8px 8px 0;
-    padding: 11px 13px;
+    border-left: 2.5px solid var(--color-line);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 14px;
     font-size: 12.5px;
-    line-height: 1.5;
-    color: #4A5763;
+    line-height: 1.55;
+    color: var(--color-ink2);
   }
-  .note-al { background: #FBEDEB; border-left-color: var(--color-warn); color: #7A2A1F; }
-  .note-gd { background: #E6F2EE; border-left-color: var(--color-prot); color: #0A5748; }
+  .note-al { background: #FCEEEC; border-left-color: var(--color-warn); color: #7A2A1F; }
+  .note-gd { background: #E6F3EF; border-left-color: var(--color-prot); color: #0A5748; }
 
   .empty {
     text-align: center;
-    padding: 34px 20px;
+    padding: 36px 20px;
     color: var(--color-dim);
     font-size: 13.5px;
     line-height: 1.6;

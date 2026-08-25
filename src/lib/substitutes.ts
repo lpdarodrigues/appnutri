@@ -113,6 +113,11 @@ export const REF_ANCORA: Record<Ancora, string> = {
   P: "a proteína", C: "o carboidrato", G: "a gordura", V: "as calorias",
 };
 
+/** Com a preposição já concordada — proteína e gordura são femininas. */
+export const EM_ANCORA: Record<Ancora, string> = {
+  P: "na proteína", C: "no carboidrato", G: "na gordura", V: "nas calorias",
+};
+
 export const escala = (f: Food, q: number): Macros => ({
   kcal: f.kcal * q / 100,
   p: f.p * q / 100,

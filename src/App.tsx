@@ -33,17 +33,18 @@ function Conteudo() {
       {aba === "ajustes" && <Ajustes />}
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-[520px] justify-around border-t border-line bg-surf/95 backdrop-blur"
+        className="fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-[520px] justify-around border-t border-line bg-surf/92 backdrop-blur-xl"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Navegação principal"
       >
         {ABAS.map(a => (
           <button
             key={a.k} onClick={() => setAba(a.k)} aria-current={aba === a.k ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-1 py-2.5 ${aba === a.k ? "text-ink" : "text-dim"}`}
+            className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${aba === a.k ? "text-ink" : "text-dim"}`}
           >
+            {aba === a.k && <span className="absolute top-0 h-[2.5px] w-7 rounded-b-full bg-ink" />}
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-              <path d={a.icone} stroke="currentColor" strokeWidth={aba === a.k ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
+              <path d={a.icone} stroke="currentColor" strokeWidth={aba === a.k ? 2.1 : 1.6} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span className={`text-[9.5px] ${aba === a.k ? "font-semibold" : ""}`}>{a.rot}</span>
           </button>

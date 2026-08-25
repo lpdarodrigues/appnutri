@@ -21,8 +21,8 @@ export function Linha({
       className={`w-full flex items-center gap-3 px-4 py-3 text-left ${onClick ? "active:bg-surf2" : ""} ${destaque ? "bg-surf2" : ""}`}
     >
       <div className="min-w-0 flex-1">
-        <div className="text-[14.5px] leading-snug font-medium">{titulo}</div>
-        {sub && <div className="text-[12px] text-dim mt-0.5 leading-snug">{sub}</div>}
+        <div className="text-[14.5px] leading-snug font-medium text-ink">{titulo}</div>
+        {sub && <div className="text-[12px] text-ink2 mt-1 leading-snug">{sub}</div>}
       </div>
       {valor !== undefined && (
         <div className="shrink-0 text-right">
@@ -37,10 +37,10 @@ export function Linha({
 
 export function Stat({ rotulo, valor, sub, cor }: { rotulo: string; valor: ReactNode; sub?: string; cor?: string }) {
   return (
-    <div className="card px-3 py-3">
+    <div className="card px-3.5 py-3.5">
       <div className="eyebrow">{rotulo}</div>
-      <b className="num block text-[21px] font-semibold leading-tight mt-1" style={cor ? { color: cor } : undefined}>{valor}</b>
-      {sub && <small className="num block text-[8.5px] text-dim tracking-wider uppercase mt-0.5">{sub}</small>}
+      <b className="num mt-1.5 block text-[23px] font-semibold leading-none tracking-tight" style={cor ? { color: cor } : undefined}>{valor}</b>
+      {sub && <small className="num mt-1.5 block text-[8.5px] tracking-[0.1em] text-dim uppercase">{sub}</small>}
     </div>
   );
 }

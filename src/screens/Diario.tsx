@@ -3,11 +3,10 @@ import { useStore, ZERO } from "../lib/store";
 import { Vazio } from "../components/ui";
 import { ItemDoDia, type Alvo } from "../components/ItemDoDia";
 import { BuscaAlimento } from "../components/BuscaAlimento";
+import { AnelCalorias, BarraMacro } from "../components/AnelCalorias";
 import { escala } from "../lib/substitutes";
-import { r0, r1, mil, caseira, hoje, somaDias, rotuloData, deIso } from "../lib/format";
+import { r0, r1, caseira, hoje, somaDias, rotuloData, deIso } from "../lib/format";
 import type { Macros } from "../lib/types";
-
-const CORES = { p: "var(--color-prot)", c: "var(--color-carb)", g: "var(--color-fat)" };
 
 export function Diario() {
   const st = useStore();
@@ -50,37 +49,33 @@ export function Diario() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-bg/95 px-4 pb-3 backdrop-blur" style={{ paddingTop: "max(env(safe-area-inset-top), 10px)" }}>
-        <div className="flex items-center justify-between">
-          <button onClick={() => setCur(somaDias(cur, -1))} aria-label="Dia anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surf text-dim">‹</button>
-          <b className="text-[15px] font-semibold capitalize">{rotuloData(cur)}</b>
-          <button onClick={() => cur < hoje() && setCur(somaDias(cur, 1))} disabled={cur >= hoje()} aria-label="Próximo dia" className="grid h-8 w-8 place-items-center rounded-full bg-surf text-dim disabled:opacity-30">›</button>
-        </div>
+      <header className="px-4 pb-1" style={{ paddingTop: "max(env(safe-area-inset-top), 12px)" }}>
+        <div className="hero px-5 pb-5 pt-4">
+          <div className="flex items-center justify-between">
+            <button onClick={() => setCur(somaDias(cur, -1))} aria-label="Dia anterior"
+              className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[15px] text-white/70 active:bg-white/20">‹</button>
+            <b className="text-[15px] font-semibold capitalize tracking-tight">{rotuloData(cur)}</b>
+            <button onClick={() => cur < hoje() && setCur(somaDias(cur, 1))} disabled={cur >= hoje()} aria-label="Próximo dia"
+              className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[15px] text-white/70 active:bg-white/20 disabled:opacity-25">›</button>
+          </div>
 
-        <div className="card mt-2.5 flex items-end justify-between px-4 py-3">
-          <div>
-            <div className="eyebrow">Consumido</div>
-            <div className="flex items-baseline gap-1.5">
-              <b className="num text-[30px] font-semibold leading-none">{mil(consumido.kcal)}</b>
-              <span className="num text-[9px] tracking-wider text-dim">KCAL</span>
+          <div className="mt-3 flex items-center gap-5">
+            <AnelCalorias consumido={consumido.kcal} meta={geral.kcal} />
+            <div className="flex-1 space-y-3">
+              <BarraMacro rotulo="PROTEÍNA" atual={consumido.p} meta={geral.p} cor="var(--color-prot-lt)" />
+              <BarraMacro rotulo="CARBO" atual={consumido.c} meta={geral.c} cor="var(--color-carb-lt)" />
+              <BarraMacro rotulo="GORDURA" atual={consumido.g} meta={geral.g} cor="var(--color-fat-lt)" />
             </div>
           </div>
-          <div className="num text-right text-[10px] leading-relaxed text-dim">
-            meta <em className="not-italic font-semibold text-ink">{mil(geral.kcal)}</em><br />
-            restam <em className="not-italic font-semibold text-ink">{mil(Math.max(0, geral.kcal - consumido.kcal))}</em>
-          </div>
-        </div>
 
-        <div className="mt-2 flex gap-2">
-          {([["PRO", "p"], ["CAR", "c"], ["GOR", "g"]] as const).map(([rot, k]) => (
-            <div key={k} className="flex flex-1 items-center gap-1.5">
-              <i className="num not-italic text-[8.5px] tracking-wider text-dim">{rot}</i>
-              <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-line">
-                <div className="h-full rounded-full transition-all duration-300" style={{ width: `${Math.min(100, geral[k] ? (consumido[k] / geral[k]) * 100 : 0)}%`, background: CORES[k] }} />
-              </div>
-              <b className="num text-[9px] font-medium text-dim">{r0(consumido[k])}/{r0(geral[k])}</b>
-            </div>
-          ))}
+          <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+            <span className="num text-[9px] tracking-[0.11em] text-white/40">
+              {ajustado ? "DIA AJUSTADO" : (plano?.n ?? "").toUpperCase()}
+            </span>
+            <span className="num text-[9px] tracking-[0.11em] text-white/40">
+              {done.length}/{meals.length} REFEIÇÕES · {r1(geral.fib)} G FIBRA
+            </span>
+          </div>
         </div>
       </header>
 
@@ -118,20 +113,27 @@ export function Diario() {
               const on = done.includes(i);
               const op = abertas.has(i);
               return (
-                <div key={i} className={`card overflow-hidden transition-opacity ${on ? "opacity-60" : ""}`}>
-                  <button onClick={() => alternar(i)} aria-expanded={op} aria-label={`${m.n}, ${r0(t.kcal)} calorias`} className="w-full px-4 pt-3.5 pb-3 text-left">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="text-[15px] font-semibold">
-                        {m.h && <span className="num mr-2 text-[10.5px] font-medium text-dim">{m.h}</span>}
-                        {m.n}
-                      </h3>
-                      <div className="num shrink-0 text-[15px] font-semibold">{r0(t.kcal)}</div>
-                    </div>
-                    <div className="mt-1.5 flex items-center justify-between">
-                      <div className="num text-[10.5px] text-dim">
-                        P <u className="no-underline font-semibold text-ink">{r1(t.p)}</u> · C <u className="no-underline font-semibold text-ink">{r1(t.c)}</u> · G <u className="no-underline font-semibold text-ink">{r1(t.g)}</u> g
+                <div key={i} className="card overflow-hidden" style={on ? { boxShadow: "0 0 0 1.5px var(--color-prot), 0 1px 2px rgb(13 20 28 / .05), 0 4px 16px -4px rgb(13 20 28 / .07)" } : undefined}>
+                  <button onClick={() => alternar(i)} aria-expanded={op} aria-label={`${m.n}, ${r0(t.kcal)} calorias`} className="w-full px-4 pt-4 pb-3.5 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        {m.h && (
+                          <span className="num shrink-0 rounded-md bg-surf2 px-1.5 py-1 text-[9.5px] font-medium text-ink2">{m.h}</span>
+                        )}
+                        <h3 className="truncate text-[15.5px] font-semibold">{m.n}</h3>
                       </div>
-                      <div className="text-dim transition-transform duration-200" style={{ transform: `rotate(${op ? 90 : 0}deg)` }}>›</div>
+                      <div className="flex shrink-0 items-baseline gap-1">
+                        <span className="num text-[17px] font-semibold leading-none">{r0(t.kcal)}</span>
+                        <span className="num text-[8.5px] tracking-wider text-dim">KCAL</span>
+                      </div>
+                    </div>
+                    <div className="mt-2.5 flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="chip chip-p">P <b>{r1(t.p)}</b></span>
+                        <span className="chip chip-c">C <b>{r1(t.c)}</b></span>
+                        <span className="chip chip-g">G <b>{r1(t.g)}</b></span>
+                      </div>
+                      <div className="shrink-0 text-[15px] text-dim transition-transform duration-200" style={{ transform: `rotate(${op ? 90 : 0}deg)` }}>›</div>
                     </div>
                   </button>
 
@@ -145,12 +147,12 @@ export function Diario() {
                         return (
                           <button key={j} onClick={() => setAlvo({ dia: cur, mi: i, ii: j })} className="flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left active:bg-surf2">
                             <div className="min-w-0 flex-1">
-                              <div className="text-[13.5px] leading-snug">{f.n}</div>
-                              <div className="num mt-0.5 text-[11px] text-dim">
-                                {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && " · "}{r1(it.q)} g · {r0(sc.kcal)} kcal · P {r1(sc.p)}
+                              <div className="text-[13.5px] font-medium leading-snug text-ink">{f.n}</div>
+                              <div className="num mt-1 text-[11px] text-ink2">
+                                {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && <span className="text-dim"> · </span>}{r1(it.q)} g<span className="text-dim"> · </span>{r0(sc.kcal)} kcal<span className="text-dim"> · </span>P {r1(sc.p)}
                               </div>
                             </div>
-                            <span className="num shrink-0 rounded-md bg-surf2 px-2 py-1 text-[9px] tracking-wide text-carb">ajustar</span>
+                            <span className="num shrink-0 rounded-lg border border-line px-2 py-1.5 text-[9px] tracking-wide text-dim">ajustar</span>
                           </button>
                         );
                       })}
@@ -166,9 +168,10 @@ export function Diario() {
                     </div>
                   )}
 
-                  <button onClick={() => marcar(i)} className={`flex w-full items-center gap-2 border-t border-line px-4 py-2.5 text-[12px] font-medium ${on ? "text-prot" : "text-dim"}`}>
-                    <span className={`grid h-4 w-4 place-items-center rounded-[5px] border ${on ? "border-prot bg-prot" : "border-line bg-surf"}`}>
-                      {on && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.4L3.3 5.7L8 1" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                  <button onClick={() => marcar(i)}
+                    className={`flex w-full items-center justify-center gap-2 border-t px-4 py-3 text-[12.5px] font-semibold transition-colors ${on ? "border-transparent bg-[#E4F1ED] text-prot" : "border-line text-dim active:bg-surf2"}`}>
+                    <span className={`grid h-4 w-4 place-items-center rounded-[5px] border transition-colors ${on ? "border-prot bg-prot" : "border-line bg-surf"}`}>
+                      {on && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.4L3.3 5.7L8 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                     </span>
                     {on ? "Consumida" : "Marcar como consumida"}
                   </button>
@@ -185,7 +188,7 @@ export function Diario() {
             const n = rc ? st.refeicoesDia(dd).length : (plano?.meals.length ?? 4);
             const feitas = rc ? rc.done.length : 0;
             return (
-              <button key={dd} onClick={() => setCur(dd)} className={`shrink-0 rounded-lg px-2 py-1.5 ${dd === cur ? "bg-ink text-white" : "bg-surf text-dim"}`}>
+              <button key={dd} onClick={() => setCur(dd)} className={`shrink-0 rounded-xl px-2.5 py-2 transition-all ${dd === cur ? "bg-ink text-white shadow-[0_2px_8px_-2px_rgb(13_20_28/.35)]" : "bg-surf text-dim shadow-[0_1px_2px_rgb(13_20_28/.05)]"}`}>
                 <em className="num block text-[10px] not-italic font-medium">{deIso(dd).toLocaleDateString("pt-BR", { day: "2-digit" })}</em>
                 <div className="mt-1 flex justify-center gap-[2px]">
                   {Array.from({ length: Math.min(n, 5) }, (_, q) => (
@@ -198,9 +201,8 @@ export function Diario() {
         </div>
 
         {meals.length > 0 && (
-          <div className="num mt-4 text-center text-[9px] leading-relaxed tracking-wider text-dim uppercase">
-            {ajustado ? "Dia ajustado" : plano?.n} · {meals.length} refeições · {r0(geral.kcal)} kcal · P {r1(geral.p)} g<br />
-            fibras {r1(geral.fib)} g · proteína {(geral.p / st.ajustes.pesoRef).toFixed(2).replace(".", ",")} g/kg
+          <div className="num mt-4 text-center text-[9px] leading-relaxed tracking-[0.1em] text-dim uppercase">
+            {r0(geral.kcal)} kcal planejadas · proteína {(geral.p / st.ajustes.pesoRef).toFixed(2).replace(".", ",")} g/kg
           </div>
         )}
       </div>

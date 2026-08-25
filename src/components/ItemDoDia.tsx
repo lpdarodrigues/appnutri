@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sheet, Lista, Linha } from "./ui";
 import { useStore } from "../lib/store";
-import { substitutos, escala, NOME_ANCORA, REF_ANCORA } from "../lib/substitutes";
+import { substitutos, escala, EM_ANCORA, REF_ANCORA } from "../lib/substitutes";
 import { GLBL } from "../lib/nutrition-config";
 import { r0, r1, caseira, numBR, procedencia } from "../lib/format";
 
@@ -109,7 +109,7 @@ export function ItemDoDia({ alvo, onFechar }: { alvo: Alvo | null; onFechar: () 
         {R && R.a && R.list.length > 0 && (
           <>
             <p className="sh">
-              Trocar por · ancorado n{R.a === "V" ? "as calorias" : "o " + NOME_ANCORA[R.a]} · {r1(R.base)} {R.a === "V" ? "kcal" : "g"}
+              Trocar por · ancorado {EM_ANCORA[R.a]} · {r1(R.base)} {R.a === "V" ? "kcal" : "g"}
             </p>
             <Lista>
               {R.list.map(o => {
