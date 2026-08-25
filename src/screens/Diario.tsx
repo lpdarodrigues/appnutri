@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore, ZERO } from "../lib/store";
 import { Vazio } from "../components/ui";
 import { ItemDoDia, type Alvo } from "../components/ItemDoDia";
+import { PesoPopup, type AlvoPeso } from "../components/PesoPopup";
 import { BuscaAlimento } from "../components/BuscaAlimento";
 import { AnelCalorias, BarraMacro } from "../components/AnelCalorias";
 import { escala } from "../lib/substitutes";
@@ -13,6 +14,7 @@ export function Diario() {
   const [cur, setCur] = useState(hoje());
   const [abertas, setAbertas] = useState<Set<number>>(new Set());
   const [alvo, setAlvo] = useState<Alvo | null>(null);
+  const [alvoPeso, setAlvoPeso] = useState<AlvoPeso | null>(null);
   const [addEm, setAddEm] = useState<number | null>(null);
 
   const rec = st.dia(cur);
@@ -145,21 +147,31 @@ export function Diario() {
                         const sc = escala(f, it.q);
                         const cs = caseira(f, it.q);
                         return (
-                          // Linha e lixeira são botões irmãos — um <button> não pode
-                          // conter outro, e a lixeira precisa do próprio alvo de toque.
+                          // Três alvos de toque na mesma linha: o nome abre as
+                          // substituições, o peso abre o popup, a lixeira remove.
+                          // Botões irmãos num div — <button> não aninha em <button>.
                           <div key={j} className="flex items-center border-b border-line last:border-0">
                             <button
                               onClick={() => setAlvo({ dia: cur, mi: i, ii: j })}
-                              className="flex min-w-0 flex-1 items-center gap-2 py-2.5 pl-4 text-left active:bg-surf2"
+                              className="min-w-0 flex-1 py-2.5 pl-4 pr-2 text-left active:bg-surf2"
                             >
-                              <div className="min-w-0 flex-1">
-                                <div className="text-[13.5px] font-medium leading-snug text-ink">{f.n}</div>
-                                <div className="num mt-1 text-[11px] text-ink2">
-                                  {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && <span className="text-dim"> · </span>}{r1(it.q)} g<span className="text-dim"> · </span>{r0(sc.kcal)} kcal<span className="text-dim"> · </span>P {r1(sc.p)}
-                                </div>
+                              <div className="text-[13.5px] font-medium leading-snug text-ink">{f.n}</div>
+                              <div className="num mt-1 text-[11px] text-ink2">
+                                {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && <span className="text-dim"> · </span>}{r0(sc.kcal)} kcal<span className="text-dim"> · </span>P {r1(sc.p)}
+                                {/* seta dupla = abre as substituições; a palavra "trocar" estourava a linha */}
+                                <span className="ml-1.5 text-[12px] text-carb" aria-hidden>⇄</span>
                               </div>
-                              <span className="num shrink-0 rounded-lg border border-line px-1.5 py-1.5 text-[9px] tracking-wide text-dim">ajustar</span>
                             </button>
+
+                            <button
+                              onClick={() => setAlvoPeso({ dia: cur, mi: i, ii: j })}
+                              aria-label={`Mudar o peso de ${f.n}, agora ${r1(it.q)} ${f.un || "g"}`}
+                              className="num shrink-0 rounded-lg border border-line bg-surf2 px-2.5 py-2 text-center leading-none active:border-carb"
+                            >
+                              <b className="text-[14px] font-semibold">{r1(it.q)}</b>
+                              <span className="ml-0.5 text-[9px] text-dim">{f.un || "g"}</span>
+                            </button>
+
                             <button
                               onClick={() => st.editarDia(cur, ms => { ms[i].items.splice(j, 1); })}
                               aria-label={`Remover ${f.n} do dia`}
@@ -225,6 +237,7 @@ export function Diario() {
       </div>
 
       <ItemDoDia alvo={alvo} onFechar={() => setAlvo(null)} />
+      <PesoPopup alvo={alvoPeso} onFechar={() => setAlvoPeso(null)} />
 
       <BuscaAlimento
         aberto={addEm !== null}
