@@ -145,15 +145,32 @@ export function Diario() {
                         const sc = escala(f, it.q);
                         const cs = caseira(f, it.q);
                         return (
-                          <button key={j} onClick={() => setAlvo({ dia: cur, mi: i, ii: j })} className="flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left active:bg-surf2">
-                            <div className="min-w-0 flex-1">
-                              <div className="text-[13.5px] font-medium leading-snug text-ink">{f.n}</div>
-                              <div className="num mt-1 text-[11px] text-ink2">
-                                {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && <span className="text-dim"> · </span>}{r1(it.q)} g<span className="text-dim"> · </span>{r0(sc.kcal)} kcal<span className="text-dim"> · </span>P {r1(sc.p)}
+                          // Linha e lixeira são botões irmãos — um <button> não pode
+                          // conter outro, e a lixeira precisa do próprio alvo de toque.
+                          <div key={j} className="flex items-center border-b border-line last:border-0">
+                            <button
+                              onClick={() => setAlvo({ dia: cur, mi: i, ii: j })}
+                              className="flex min-w-0 flex-1 items-center gap-2 py-2.5 pl-4 text-left active:bg-surf2"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[13.5px] font-medium leading-snug text-ink">{f.n}</div>
+                                <div className="num mt-1 text-[11px] text-ink2">
+                                  {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && <span className="text-dim"> · </span>}{r1(it.q)} g<span className="text-dim"> · </span>{r0(sc.kcal)} kcal<span className="text-dim"> · </span>P {r1(sc.p)}
+                                </div>
                               </div>
-                            </div>
-                            <span className="num shrink-0 rounded-lg border border-line px-2 py-1.5 text-[9px] tracking-wide text-dim">ajustar</span>
-                          </button>
+                              <span className="num shrink-0 rounded-lg border border-line px-1.5 py-1.5 text-[9px] tracking-wide text-dim">ajustar</span>
+                            </button>
+                            <button
+                              onClick={() => st.editarDia(cur, ms => { ms[i].items.splice(j, 1); })}
+                              aria-label={`Remover ${f.n} do dia`}
+                              className="grid h-11 w-9 shrink-0 place-items-center text-dim active:text-warn"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                                <path d="M2.8 4.3h10.4M6.4 4.3V3.1a.8.8 0 01.8-.8h1.6a.8.8 0 01.8.8v1.2M12 4.3l-.5 8.2a1.1 1.1 0 01-1.1 1H5.6a1.1 1.1 0 01-1.1-1L4 4.3M6.6 7v4M9.4 7v4"
+                                  stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          </div>
                         );
                       })}
 
