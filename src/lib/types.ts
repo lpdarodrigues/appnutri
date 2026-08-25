@@ -30,7 +30,16 @@ export interface Food {
 export interface MealItem { f: string; q: number }
 export interface Meal { n: string; h: string; items: MealItem[] }
 export interface Diet { id: string; n: string; meals: Meal[] }
-export interface DayRec { diet: string; done: number[] }
+export interface DayRec {
+  diet: string;
+  done: number[];
+  /**
+   * Refeições próprias do dia. Ausente = o dia segue o plano.
+   * Assim que o usuário mexe em algum item, o dia é congelado aqui e passa a
+   * ser registro do que ele comeu, não cópia do que estava planejado.
+   */
+  meals?: Meal[];
+}
 export interface WeightEntry { d: string; kg: number }
 
 export interface Macros { kcal: number; p: number; c: number; g: number; fib: number }

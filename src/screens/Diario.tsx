@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useStore, ZERO } from "../lib/store";
 import { Vazio } from "../components/ui";
-import { SubstitutosSheet } from "../components/SubstitutosSheet";
+import { ItemDoDia, type Alvo } from "../components/ItemDoDia";
+import { BuscaAlimento } from "../components/BuscaAlimento";
 import { escala } from "../lib/substitutes";
 import { r0, r1, mil, caseira, hoje, somaDias, rotuloData, deIso } from "../lib/format";
-import type { Food, Macros } from "../lib/types";
+import type { Macros } from "../lib/types";
 
 const CORES = { p: "var(--color-prot)", c: "var(--color-carb)", g: "var(--color-fat)" };
 
@@ -12,21 +13,26 @@ export function Diario() {
   const st = useStore();
   const [cur, setCur] = useState(hoje());
   const [abertas, setAbertas] = useState<Set<number>>(new Set());
-  const [alvo, setAlvo] = useState<{ f: Food; q: number } | null>(null);
+  const [alvo, setAlvo] = useState<Alvo | null>(null);
+  const [addEm, setAddEm] = useState<number | null>(null);
 
   const rec = st.dia(cur);
-  const d = st.dieta(rec.diet);
+  const plano = st.dieta(rec.diet);
+  const meals = st.refeicoesDia(cur);
+  const ajustado = st.diaAjustado(cur);
   const done = rec.done ?? [];
 
-  const geral: Macros = d ? st.totaisDieta(d) : ZERO;
-  const consumido: Macros = d
-    ? done.reduce((a, i) => {
-        const m = d.meals[i];
-        if (!m) return a;
-        const t = st.totaisRefeicao(m);
-        return { kcal: a.kcal + t.kcal, p: a.p + t.p, c: a.c + t.c, g: a.g + t.g, fib: a.fib + t.fib };
-      }, ZERO)
-    : ZERO;
+  const geral: Macros = meals.reduce((a, m) => {
+    const t = st.totaisRefeicao(m);
+    return { kcal: a.kcal + t.kcal, p: a.p + t.p, c: a.c + t.c, g: a.g + t.g, fib: a.fib + t.fib };
+  }, ZERO);
+
+  const consumido: Macros = done.reduce((a, i) => {
+    const m = meals[i];
+    if (!m) return a;
+    const t = st.totaisRefeicao(m);
+    return { kcal: a.kcal + t.kcal, p: a.p + t.p, c: a.c + t.c, g: a.g + t.g, fib: a.fib + t.fib };
+  }, ZERO);
 
   const alternar = (i: number) =>
     setAbertas(s => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; });
@@ -35,12 +41,12 @@ export function Diario() {
     const l = [...done];
     const k = l.indexOf(i);
     k < 0 ? l.push(i) : l.splice(k, 1);
-    st.setDia(cur, { diet: rec.diet, done: l });
+    st.setDia(cur, { ...rec, done: l });
   };
 
-  const ordenadas = d
-    ? d.meals.map((m, i) => ({ m, i })).sort((a, b) => (a.m.h || "99:99").localeCompare(b.m.h || "99:99"))
-    : [];
+  const ordenadas = meals
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => (a.m.h || "99:99").localeCompare(b.m.h || "99:99"));
 
   return (
     <>
@@ -79,19 +85,32 @@ export function Diario() {
       </header>
 
       <div className="px-4 pb-4">
-        {st.diets.length > 1 && (
+        {st.diets.length > 1 && !ajustado && (
           <>
             <p className="sh !mt-3">Dieta do dia</p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {st.diets.map(x => (
-                <button key={x.id} onClick={() => st.setDia(cur, { diet: x.id, done: [] })} className={`pill ${x.id === d?.id ? "pill-on" : ""}`}>{x.n}</button>
+                <button key={x.id} onClick={() => st.setDia(cur, { diet: x.id, done: [] })} className={`pill ${x.id === plano?.id ? "pill-on" : ""}`}>{x.n}</button>
               ))}
             </div>
           </>
         )}
 
-        {!d || !d.meals.length ? (
-          <div className="mt-3"><Vazio>Nenhuma refeição nesta dieta.<br />Abra <b>Dietas</b> para montá-la.</Vazio></div>
+        {ajustado && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-surf px-3.5 py-2.5 shadow-sm">
+            <div className="text-[12px] leading-snug text-dim">
+              <b className="text-ink">Dia ajustado.</b> Você mudou este dia — o plano
+              “{plano?.n}” continua intacto.
+            </div>
+            <button
+              onClick={() => { if (confirm("Descartar os ajustes deste dia e voltar a seguir o plano?")) st.voltarAoPlano(cur); }}
+              className="num shrink-0 rounded-md border border-line px-2.5 py-1.5 text-[10px] tracking-wide text-dim"
+            >desfazer</button>
+          </div>
+        )}
+
+        {!meals.length ? (
+          <div className="mt-3"><Vazio>Nenhuma refeição neste dia.<br />Abra <b>Dietas</b> para montar seu plano.</Vazio></div>
         ) : (
           <div className="mt-3 space-y-2.5">
             {ordenadas.map(({ m, i }) => {
@@ -124,17 +143,26 @@ export function Diario() {
                         const sc = escala(f, it.q);
                         const cs = caseira(f, it.q);
                         return (
-                          <button key={j} onClick={() => setAlvo({ f, q: it.q })} className="flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left last:border-0 active:bg-surf2">
+                          <button key={j} onClick={() => setAlvo({ dia: cur, mi: i, ii: j })} className="flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left active:bg-surf2">
                             <div className="min-w-0 flex-1">
                               <div className="text-[13.5px] leading-snug">{f.n}</div>
                               <div className="num mt-0.5 text-[11px] text-dim">
                                 {cs && <b className="font-semibold text-ink">{cs}</b>}{cs && " · "}{r1(it.q)} g · {r0(sc.kcal)} kcal · P {r1(sc.p)}
                               </div>
                             </div>
-                            <span className="num shrink-0 rounded-md bg-surf2 px-2 py-1 text-[9px] tracking-wide text-carb">trocar</span>
+                            <span className="num shrink-0 rounded-md bg-surf2 px-2 py-1 text-[9px] tracking-wide text-carb">ajustar</span>
                           </button>
                         );
                       })}
+
+                      {!m.items.length && (
+                        <div className="px-4 py-3 text-center text-[12.5px] text-dim">Nenhum alimento nesta refeição.</div>
+                      )}
+
+                      <button
+                        onClick={() => setAddEm(i)}
+                        className="w-full border-b border-line px-4 py-2.5 text-left text-[12.5px] font-medium text-carb active:bg-surf2"
+                      >+ Adicionar alimento</button>
                     </div>
                   )}
 
@@ -154,8 +182,7 @@ export function Diario() {
           {Array.from({ length: 14 }, (_, k) => {
             const dd = somaDias(hoje(), k - 13);
             const rc = st.days[dd];
-            const dt = rc ? st.dieta(rc.diet) : null;
-            const n = dt ? dt.meals.length : 4;
+            const n = rc ? st.refeicoesDia(dd).length : (plano?.meals.length ?? 4);
             const feitas = rc ? rc.done.length : 0;
             return (
               <button key={dd} onClick={() => setCur(dd)} className={`shrink-0 rounded-lg px-2 py-1.5 ${dd === cur ? "bg-ink text-white" : "bg-surf text-dim"}`}>
@@ -170,15 +197,28 @@ export function Diario() {
           })}
         </div>
 
-        {d && (
+        {meals.length > 0 && (
           <div className="num mt-4 text-center text-[9px] leading-relaxed tracking-wider text-dim uppercase">
-            {d.n} · {d.meals.length} refeições · {r0(geral.kcal)} kcal · P {r1(geral.p)} g<br />
+            {ajustado ? "Dia ajustado" : plano?.n} · {meals.length} refeições · {r0(geral.kcal)} kcal · P {r1(geral.p)} g<br />
             fibras {r1(geral.fib)} g · proteína {(geral.p / st.ajustes.pesoRef).toFixed(2).replace(".", ",")} g/kg
           </div>
         )}
       </div>
 
-      <SubstitutosSheet alvo={alvo} onFechar={() => setAlvo(null)} />
+      <ItemDoDia alvo={alvo} onFechar={() => setAlvo(null)} />
+
+      <BuscaAlimento
+        aberto={addEm !== null}
+        onFechar={() => setAddEm(null)}
+        onEscolher={fid => {
+          const i = addEm!;
+          const f = st.food(fid);
+          // porção inicial: uma medida caseira quando existe, senão 100 g
+          const q = f?.mp && f.mp > 0 ? f.mp : 100;
+          st.editarDia(cur, m => { m[i].items.push({ f: fid, q }); });
+          setAddEm(null);
+        }}
+      />
     </>
   );
 }

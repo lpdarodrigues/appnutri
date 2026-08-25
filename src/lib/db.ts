@@ -73,4 +73,13 @@ export async function importar(texto: string) {
   });
 }
 
+/**
+ * Converte a linha do banco no registro do dia.
+ *
+ * Existe como função separada porque listar campo a campo aqui já causou perda
+ * silenciosa dos ajustes do dia: gravava certo, relia errado, e o usuário só
+ * descobria ao reabrir o app. Tudo que não é a chave `d` faz parte do registro.
+ */
+export const linhaParaDia = ({ d: _chave, ...resto }: DiaRow): DayRec => resto;
+
 export const uid = () => Math.random().toString(36).slice(2, 9);

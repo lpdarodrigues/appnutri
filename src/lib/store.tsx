@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Food, Diet, DayRec, WeightEntry, Ajustes, Macros, Meal } from "./types";
-import { db, semear, lerAjustes, gravarAjustes, AJUSTES_PADRAO } from "./db";
+import { db, semear, lerAjustes, gravarAjustes, linhaParaDia, AJUSTES_PADRAO } from "./db";
 import { TACO } from "./catalog";
 import { escala } from "./substitutes";
 
@@ -21,6 +21,14 @@ interface Ctx extends Estado {
   dia: (d: string) => DayRec;
   dieta: (id: string | undefined) => Diet | undefined;
   totaisRefeicao: (m: Meal) => Macros;
+  /** O que foi comido naquele dia: refeições próprias, ou as do plano. */
+  refeicoesDia: (d: string) => Meal[];
+  /** true quando o dia descolou do plano. */
+  diaAjustado: (d: string) => boolean;
+  /** Edita o dia. Congela as refeições do plano na primeira mexida. */
+  editarDia: (d: string, fn: (meals: Meal[]) => void) => Promise<void>;
+  /** Descarta os ajustes e volta a seguir o plano. */
+  voltarAoPlano: (d: string) => Promise<void>;
   totaisDieta: (d: Diet) => Macros;
   recarregar: () => Promise<void>;
   setDia: (d: string, rec: DayRec) => Promise<void>;
@@ -49,7 +57,7 @@ export function Store({ children }: { children: ReactNode }) {
       db.weights.toArray(), lerAjustes(),
     ]);
     const days: Record<string, DayRec> = {};
-    for (const r of dias) days[r.d] = { diet: r.diet, done: r.done };
+    for (const linha of dias) days[linha.d] = linhaParaDia(linha);
     setE({ foods, diets, days, weights, ajustes, pronto: true });
   };
 
@@ -77,11 +85,30 @@ export function Store({ children }: { children: ReactNode }) {
   const dia = (d: string): DayRec => e.days[d] ?? { diet: e.diets[0]?.id ?? "", done: [] };
   const dieta = (id: string | undefined) => e.diets.find(d => d.id === id) ?? e.diets[0];
 
+  const refeicoesDia = (d: string): Meal[] => {
+    const rec = dia(d);
+    return rec.meals ?? dieta(rec.diet)?.meals ?? [];
+  };
+  const diaAjustado = (d: string) => Boolean(dia(d).meals);
+
+  const gravarDia = async (d: string, rec: DayRec) => {
+    await db.days.put({ d, ...rec });
+    setE(s => ({ ...s, days: { ...s.days, [d]: rec } }));
+  };
+
   const ctx: Ctx = {
     ...e, catalogo, food, dia, dieta, totaisRefeicao, totaisDieta, recarregar,
-    setDia: async (d, rec) => {
-      await db.days.put({ d, ...rec });
-      setE(s => ({ ...s, days: { ...s.days, [d]: rec } }));
+    refeicoesDia, diaAjustado,
+    setDia: gravarDia,
+    editarDia: async (d, fn) => {
+      const rec = dia(d);
+      const meals = structuredClone(rec.meals ?? dieta(rec.diet)?.meals ?? []);
+      fn(meals);
+      await gravarDia(d, { ...rec, meals });
+    },
+    voltarAoPlano: async d => {
+      const { meals: _descartado, ...resto } = dia(d);
+      await gravarDia(d, resto);
     },
     salvarDieta: async d => {
       await db.diets.put(d);
