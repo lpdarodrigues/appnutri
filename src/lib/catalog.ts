@@ -16,9 +16,8 @@ export function catalogo(userFoods: Food[] = SEED_FOODS): Food[] {
   return [...userFoods, ...TACO];
 }
 
-/** Busca acento-insensível. */
-export const norm = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+import { norm } from "./busca";
+export { norm };
 
 export function acharPorNome(lista: Food[], trecho: string): Food {
   const q = norm(trecho);

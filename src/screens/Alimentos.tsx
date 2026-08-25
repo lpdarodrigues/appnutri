@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../lib/store";
 import { Sheet, Lista, Linha } from "../components/ui";
-import { norm, TACO } from "../lib/catalog";
+import { TACO } from "../lib/catalog";
+import { buscar } from "../lib/busca";
 import { GLBL } from "../lib/nutrition-config";
 import { r0, r1, procedencia, numBR } from "../lib/format";
 import { uid } from "../lib/db";
@@ -19,11 +20,8 @@ export function Alimentos() {
   const [novo, setNovo] = useState(false);
 
   const lista = useMemo(() => {
-    let l = st.catalogo;
-    if (filtro !== "all") l = l.filter(f => f.cat === filtro);
-    const t = norm(q.trim());
-    if (t) l = l.filter(f => norm(f.n).includes(t));
-    return l.slice(0, 60);
+    const base = filtro === "all" ? st.catalogo : st.catalogo.filter(f => f.cat === filtro);
+    return buscar(base, q, 60);
   }, [q, filtro, st.catalogo]);
 
   return (
@@ -59,7 +57,19 @@ export function Alimentos() {
               />
             );
           })}
-          {!lista.length && <div className="empty">Nada encontrado para “{q}”.</div>}
+          {!lista.length && (
+            <div className="px-4 py-6 text-center">
+              <div className="text-[13.5px] text-dim">Nada encontrado para “{q}”.</div>
+              <button onClick={() => setNovo(true)} className="btn btn-sm mt-3">
+                Cadastrar “{q.trim().slice(0, 24)}”
+              </button>
+              <div className="note mt-3 text-left">
+                A base TACO usa nomes acadêmicos — <b>espaguete</b> está lá como
+                “Macarrão, trigo”. E ela não tem produtos de marca: esses você
+                cadastra uma vez, lendo o rótulo.
+              </div>
+            </div>
+          )}
         </Lista>
       </div>
 
